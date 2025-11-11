@@ -1,128 +1,192 @@
-# 🎬 Cine Match - AI-Powered Movie Recommendations 🍿
+# 🎬 Cine Match – AI-Powered Movie Recommendation Platform 🍿
 
-**Cine Match** is a next-generation AI-powered movie recommendation system built to transform how film lovers discover new favorites. It uses a hybrid content-based filtering model powered by Apache Spark to generate personalized movie recommendations tailored to your unique preferences.
-
-This innovative application is built with **Django** (backend), **PostgreSQL** (database), **Apache Spark** (AI pipeline), and **Tailwind CSS** (frontend), delivering speed, security, and a modern user experience.
+**Cine Match** is a next-generation, full-stack movie recommendation system designed to help film enthusiasts discover their next favorite movie effortlessly.  
+Built with a **Flutter mobile app**, **Django REST API**, **PostgreSQL**, and **Apache Spark**, it delivers **personalized, AI-driven recommendations** powered by large-scale data analytics.
 
 ---
 
 ## 🚀 Features
 
-- 🔍 **Smart Recommendations** – Get intelligent suggestions based on genres and ratings you like.
-- 🎞️ **Movie Details and Ratings** – Explore details, rate movies, and see how they rank.
-- 🎯 **User Preference Profiles** – Personalize your account with genre and watchlist data.
-- 🧠 **AI Recommendation Engine** – Apache Spark computes movie similarities via TF-IDF & Cosine similarity.
-- 📅 **Automated Daily Updates** – Scheduled pipeline refresh using cron or Airflow.
-- 📱 **Responsive UI** – Sleek design with Tailwind CSS optimized for all devices.
-- 🐳 **Docker-Ready** – Full containerized deployment with Docker & Docker Compose.
+- 🔍 **Personalized Movie Recommendations** – Get curated suggestions based on your ratings, preferences, and viewing history.  
+- 🎞️ **Interactive Movie Details & Ratings** – View movie info, rate them in real-time, and influence your recommendations.  
+- 🎯 **User Preference Profiles** – Manage your favorite genres, watchlists, and activity insights.  
+- ⚡ **AI-Powered Engine (Spark MLlib)** – Uses collaborative filtering (ALS) and content-based similarity for hybrid recommendations.  
+- 📅 **Automated Daily Updates** – Spark pipeline retrains models daily via Dockerized scheduler or Airflow.  
+- 📱 **Cross-Platform Mobile App** – Built in **Flutter**, optimized for Android and iOS.  
+- 🐳 **Containerized Deployment** – Fully reproducible and scalable with **Docker Compose**.
 
 ---
 
 ## 🛠️ Tech Stack
 
-| Layer        | Technology               |
-|--------------|---------------------------|
-| Backend      | Django + Python           |
-| Database     | PostgreSQL                |
-| AI Engine    | Apache Spark MLlib        |
-| Frontend     | Tailwind CSS + JS         |
-| DevOps       | Docker + Cron / Airflow   |
+| Layer | Technology |
+|-------|-------------|
+| **Frontend (App)** | Flutter (Dart) |
+| **Backend (API)** | Django + Django REST Framework |
+| **Database** | PostgreSQL |
+| **AI Engine** | Apache Spark MLlib (ALS Collaborative Filtering) |
+| **Authentication** | JWT (SimpleJWT) |
+| **DevOps / Automation** | Docker + Docker Compose + Cron / Airflow |
 
 ---
 
 ## 📁 Project Structure
 
 ```
-cinematch/
-├── docker-compose.yml
-├── Dockerfile
-├── manage.py
-├── movies/                 # Movie models and views
-├── recommendations/        # Spark logic and management commands
-├── templates/             # Tailwind HTML templates
-├── users/                 # Login, registration, and profile management
-├── spark_pipeline.py      # AI recommendation engine
-└── requirements.txt
+cine-match/
+├── docker-compose.yml          # Orchestrates all containers
+├── backend/
+│   ├── Dockerfile
+│   ├── manage.py
+│   ├── requirements.txt
+│   ├── project/
+│   │   ├── settings.py
+│   │   ├── urls.py
+│   ├── movies/                 # Movie, Rating models & APIs
+│   ├── recommender/            # Spark job scripts & pipelines
+│   ├── users/                  # Authentication & Profile logic
+│   └── recommender/spark_als_job.py
+├── flutter_app/
+│   ├── pubspec.yaml
+│   ├── lib/
+│   │   ├── main.dart
+│   │   ├── screens/            # Login, Home, Movie Detail, Profile
+│   │   ├── providers/          # Auth & Movie state management
+│   │   └── services/           # REST API communication
+└── README.md
 ```
 
 ---
 
 ## 🧠 AI Recommendation Engine
 
-- Uses **TF-IDF vectorization** to encode genres, plots, and metadata.
-- Applies **cosine similarity** to compute closeness between movies.
-- Stores precomputed personalized recommendations per user in the `UserRecommendations` model.
-- Can be extended to hybrid models including collaborative filtering.
+### 🔹 Model Overview
+- **Collaborative Filtering (ALS)** – Learns from user-movie rating patterns to recommend unseen titles.  
+- **Hybrid Mode (optional)** – Combines content-based filtering (genre similarity via TF-IDF) with collaborative signals.  
+- **Daily Refresh** – The Spark job trains a fresh model daily and stores recommendations back to PostgreSQL.
+
+### 🔹 Pipeline Workflow
+1. Extract ratings and movies from PostgreSQL.  
+2. Train ALS model on Spark.  
+3. Generate top-N movie recommendations for each user.  
+4. Store results in `user_recommendations` table.  
+
+Run manually:
+```bash
+docker-compose run --rm spark spark-submit /recommender/spark_als_job.py
+```
+
+Or schedule daily via cron:
+```bash
+0 2 * * * docker-compose run --rm spark spark-submit /recommender/spark_als_job.py
+```
 
 ---
 
-## ⚙️ How to Run
+## ⚙️ How to Run Locally
 
-### 1. Clone & Setup
-
+### 1️⃣ Clone the Repository
 ```bash
 git clone https://github.com/yourusername/cine-match.git
 cd cine-match
-cp .env.example .env
 ```
 
-### 2. Using Docker (Recommended)
+### 2️⃣ Configure Environment
+Copy the environment template:
+```bash
+cp backend/.env.example backend/.env
+```
 
+### 3️⃣ Start Using Docker Compose
 ```bash
 docker-compose up --build
 ```
 
-Or run manually:
+This starts:
+- PostgreSQL (Database)  
+- Django API (Backend)  
+- Spark (AI Engine)  
 
+### 4️⃣ Apply Migrations & Create Admin
 ```bash
-python manage.py migrate
-python manage.py createsuperuser
-python manage.py runserver
+docker-compose exec web python manage.py migrate
+docker-compose exec web python manage.py createsuperuser
 ```
 
-### 3. Run the Recommendation Engine
-
+### 5️⃣ Run the Mobile App
+Open `flutter_app/` and run:
 ```bash
-python manage.py run_recommender
+flutter pub get
+flutter run
 ```
 
-To automate it:
-- Add as a cron job
-- Or schedule via Apache Airflow
+Ensure the API URL in `lib/services/api.dart` matches your backend endpoint.
 
 ---
 
-## 🌐 Live Demo
+## 📱 Flutter UI Overview
 
-🚧 **Deployment in progress**  
-Expected deployment on Render / Heroku / AWS – stay tuned.
+| Screen | Description |
+|--------|--------------|
+| **Login / Signup** | JWT-based authentication with Django REST API |
+| **Home** | Browse movies and view personalized recommendations |
+| **Movie Detail** | View metadata, ratings, and similar movie suggestions |
+| **Profile** | Update genre preferences and view watch history |
 
 ---
 
-## ✨ Meet the Team
+## 🧩 Example API Endpoints
+
+| Endpoint | Method | Description |
+|-----------|---------|-------------|
+| `/api/movies/` | `GET` | List movies |
+| `/api/movies/{id}/rate/` | `POST` | Submit or update a rating |
+| `/api/user/profile/` | `GET/PUT` | Get or update preferences |
+| `/api/user/recommendations/` | `GET` | Fetch top recommended movies |
+
+---
+
+## 🌐 Deployment
+
+Cine Match is fully Dockerized for fast and reproducible deployment.  
+You can deploy easily to:
+
+- 🟦 **Render / Railway** – for backend API hosting  
+- 🐳 **AWS ECS / EC2** – for production workloads  
+- 🧠 **Databricks / Spark Cluster** – for scalable ML processing  
+
+CI/CD with GitHub Actions and Airflow integration is planned for production automation.
+
+---
+
+## 👥 Team
 
 | Name | Role |
 |------|------|
-| John Doe | Project Manager |
-| Jane Smith | Lead Developer |
-| Alice Johnson | UI/UX Designer |
+| **Rajbir Ray** | Full-Stack Developer / AI Engineer |
+| **—** | (Open for collaborators & contributors!) |
 
 ---
 
 ## 🤝 Contributing
 
-We welcome community contributions!
-
+We welcome contributions!  
 To contribute:
 
-1. Fork this repo
-2. Create a feature branch: `git checkout -b feat/amazing-feature`
-3. Commit your changes: `git commit -am 'Add new feature'`
-4. Push to the branch: `git push origin feat/amazing-feature`
-5. Create a pull request!
+```bash
+git fork https://github.com/yourusername/cine-match.git
+git checkout -b feat/your-feature
+git commit -m "Add new feature"
+git push origin feat/your-feature
+```
+
+Then open a Pull Request.
 
 ---
 
-## 📘 License
+## 📜 License
 
-Licensed under the MIT License.
+Licensed under the **MIT License**.  
+Feel free to use, modify, and build upon Cine Match with attribution.
+
+---
